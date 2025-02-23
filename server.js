@@ -6,6 +6,10 @@ const colors = require('colors');
 require('dotenv').config();
 const dbConnect = require("./config/dbConnect");
 
+//routes paths
+const authRoutes = require("./routes/authRoutes");
+
+
 const app = express();
 
 
@@ -14,6 +18,9 @@ app.use(cors());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(morgan('dev'));
 
+
+// API routes
+app.use("/api/v1/auth", authRoutes);
 
 dbConnect()
     .then(() => {
