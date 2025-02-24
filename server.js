@@ -8,6 +8,7 @@ const dbConnect = require("./config/dbConnect");
 
 //routes paths
 const authRoutes = require("./routes/authRoutes");
+const errorHandler = require('./middlewares/errorMiddleware');
 
 
 const app = express();
@@ -17,7 +18,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(morgan('dev'));
-
+app.use(errorHandler);
 
 // API routes
 app.use("/api/v1/auth", authRoutes);

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const bcrypt = requie("bcryptjs");
+const bcrypt = require("bcryptjs");
 const JWT = require("jsonwebtoken");
 const cookie = require("cookie");
 
@@ -7,7 +7,7 @@ const cookie = require("cookie");
 const User = new mongoose.Schema({
     username:{
         type: String,
-        require: [true,"Username is required"]
+        required: [true,"Username is required"]
     },
     email: {
         type: String,
