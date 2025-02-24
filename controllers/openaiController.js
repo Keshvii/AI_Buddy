@@ -1,115 +1,85 @@
 const dotenv = require("dotenv");
 dotenv.config();
-const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
+
+//Summary Controller
 exports.summaryController = async (req, res) => {
   try {
     const { text } = req.body;
-    const { data } = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `Summarize this \n${text}`,
-      max_tokens: 500,
-      temperature: 0.5,
-    });
-    if (data) {
-      if (data.choices[0].text) {
-        return res.status(200).json(data.choices[0].text);
-      }
-    }
+    if (!text) return res.status(400).json({ message: "Text is required" });
+
+    const prompt = `Summarize the following text in 100 words:\n\n${text}`;
+
+    const response = await model.generateContent(prompt);
+    const generatedText = response?.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    return res.status(200).json({ summary: generatedText || "Failed to generate summary" });
   } catch (err) {
-    console.log(err);
-    return res.status(404).json({
-      message: err.message,
-    });
+    console.error("Gemini API Error:", err);
+    return res.status(500).json({ message: "Internal Server Error", error: err.message });
   }
 };
+
+//Paragraph Controller
 exports.paragraphController = async (req, res) => {
   try {
     const { text } = req.body;
-    const { data } = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `write a detail paragraph about \n${text}`,
-      max_tokens: 500,
-      temperature: 0.5,
-    });
-    if (data) {
-      if (data.choices[0].text) {
-        return res.status(200).json(data.choices[0].text);
-      }
-    }
+    if (!text) return res.status(400).json({ message: "Text is required" });
+
+    const prompt = `Write a detailed paragraph about ${text} in 100 words.`;
+
+    const response = await model.generateContent(prompt);
+    const generatedText = response?.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    return res.status(200).json({ paragraph: generatedText || "Failed to generate content" });
   } catch (err) {
-    console.log(err);
-    return res.status(404).json({
-      message: err.message,
-    });
+    console.error("Gemini API Error:", err);
+    return res.status(500).json({ message: "Internal Server Error", error: err.message });
   }
 };
+
+// Chatbot Controller
 exports.chatbotController = async (req, res) => {
   try {
     const { text } = req.body;
-    const { data } = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `Answer question similar to how yoda from star war would.
-      Me: 'what is your name?'
-      yoda: 'yoda is my name'
-      Me: ${text}`,
-      max_tokens: 300,
-      temperature: 0.7,
-    });
-    if (data) {
-      if (data.choices[0].text) {
-        return res.status(200).json(data.choices[0].text);
-      }
-    }
+    if (!text) return res.status(400).json({ message: "User input is required" });
+
+    const prompt = `
+      Your name is Gian. Answer questions like Gian from Doraemon.
+      User: 'what is your name?'
+      Gian: 'Gian is my name'
+      User: ${text}
+      Gian:
+    `;
+
+    const response = await model.generateContent(prompt);
+    const generatedText = response?.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    return res.status(200).json({ response: generatedText || "Gian is speechless." });
   } catch (err) {
-    console.log(err);
-    return res.status(404).json({
-      message: err.message,
-    });
+    console.error("Gemini API Error:", err);
+    return res.status(500).json({ message: "Internal Server Error", error: err.message });
   }
 };
+
+// JavaScript Converter Controller
 exports.jsconverterController = async (req, res) => {
   try {
     const { text } = req.body;
-    const { data } = await openai.createCompletion({
-      model: "text-davinci-002",
-      prompt: `/* convert these instruction into javascript code \n${text}`,
-      max_tokens: 400,
-      temperature: 0.25,
-    });
-    if (data) {
-      if (data.choices[0].text) {
-        return res.status(200).json(data.choices[0].text);
-      }
-    }
+    if (!text) return res.status(400).json({ message: "Instruction is required" });
+
+    const prompt = `Convert the following instructions into JavaScript code:\n\n${text}`;
+
+    const response = await model.generateContent(prompt);
+    const generatedText = response?.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    return res.status(200).json({ code: generatedText || "Could not generate code." });
   } catch (err) {
-    console.log(err);
-    return res.status(404).json({
-      message: err.message,
-    });
-  }
-};
-exports.scifiImageController = async (req, res) => {
-  try {
-    const { text } = req.body;
-    const { data } = await openai.createImage({
-      prompt: `generate a scifi image of ${text}`,
-      n: 1,
-      size: "512x512",
-    });
-    if (data) {
-      if (data.data[0].url) {
-        return res.status(200).json(data.data[0].url);
-      }
-    }
-  } catch (err) {
-    console.log(err);
-    return res.status(404).json({
-      message: err.message,
-    });
+    console.error("Gemini API Error:", err);
+    return res.status(500).json({ message: "Internal Server Error", error: err.message });
   }
 };
